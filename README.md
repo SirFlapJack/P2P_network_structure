@@ -1,5 +1,4 @@
 # P2P_network_structure - P2P File Sharing System
-
 Abstract
 This project implements a peer-to-peer (P2P) file sharing system using Python. The system enables users to share and download data chunks over a decentralized network. It offers functionalities for hosting files, broadcasting chunk availability, downloading chunks, and reconstructing files from downloaded chunks.
 
@@ -13,7 +12,6 @@ Reconstruct complete files from downloaded chunks.
 Utilize multicast-based broadcasting for improved network efficiency.
 Command-line interface for user-friendly interaction.
 
-
 Implementation Details
 The project is implemented in Python and consists of the following components:
 Data Chunking: Automatically splits hosted files into manageable data chunks.
@@ -23,12 +21,6 @@ Chunk Downloader: Downloads specified data chunks from peers.
 File Stitching: Reconstructs original files from downloaded chunks.
 User Interaction: Offers a command-line interface for users to interact with the network.
 
-Prerequisites
+Prerequisites:
 Python 3.x
-
-Commands
-/help: Display available commands and their descriptions.
-/stopsubflow: Stop displaying information messages for new submissions.
-/keepsubflow: Continue displaying information messages for new submissions.
-/downloadfile: Attempt to download a specified file from the network.
-/printnetchunks: Print out the available chunks in the network.
+Hamachi
