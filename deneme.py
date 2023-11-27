@@ -5,39 +5,45 @@ import os
 import math
 import json
 
+# Socket for UDP communication
 peer_udp_sock = socket(AF_INET, SOCK_DGRAM)
 peer_udp_send_sock = socket(AF_INET, SOCK_DGRAM)
 
+# Socket for TCP communication
 serverSocket = socket(AF_INET, SOCK_STREAM)
 
+# List to store information about peers in the network
 peer_list = []
 
+# Broadcast address for UDP communication
 broadcast_address = ('25.255.255.255', 12001)
 
+# Dictionary to store local information about hosted chunks
 local_dict = {}
 
 
+# Function to convert data into chunks and save them as files
 def data_to_chunk(data_name):
     try:
         content_name = data_name
-        filename = content_name+'.png'
+        filename = content_name + '.png'
         c = os.path.getsize(filename)
-        CHUNK_SIZE = math.ceil(math.ceil(c)/5)
+        CHUNK_SIZE = math.ceil(math.ceil(c) / 5)
 
         index = 1
         with open(filename, 'rb') as infile:
             chunk = infile.read(int(CHUNK_SIZE))
             while chunk:
-                chunkname = content_name+'_'+str(index) + 'chk'
+                chunkname = content_name + '_' + str(index) + 'chk'
                 with open(chunkname, 'wb+') as chunk_file:
                     chunk_file.write(chunk)
                 index += 1
                 chunk = infile.read(int(CHUNK_SIZE))
-        chunk_file.close()
     except:
         print('file not found')
 
 
+# Function to get a list of all available chunks in the local directory
 def all_available_chunks():
     chunks_list = []
     for root, dirs, files in os.walk(os.getcwd()):
@@ -48,6 +54,7 @@ def all_available_chunks():
     return json.dumps(chunk_dictionary)
 
 
+# Function to broadcast information about available chunks at regular intervals
 def chunk_announcer(period, data_name):
     data_to_chunk(data_name)
     start_time = time.time()
@@ -62,6 +69,7 @@ def chunk_announcer(period, data_name):
         first_time = False
 
 
+# Function to receive data from peers over UDP
 def RecvData(sock):
     while 1:
         data, address = sock.recvfrom(2048)
@@ -81,6 +89,7 @@ def RecvData(sock):
             print(f'\nNew Submission: {peer_list[len(peer_list) - 1]}')
 
 
+# Function to set up and run the UDP socket for peer communication
 def runPeerSocket():
     port = 12001
     peer_udp_sock.bind(('', port))
@@ -89,6 +98,7 @@ def runPeerSocket():
     threading.Thread(target=RecvData, args=(peer_udp_sock,)).start()
 
 
+# Function to handle uploading chunks over TCP
 def chunk_Uploader():
     serverPort = 12000
 
@@ -110,6 +120,7 @@ def chunk_Uploader():
         connection_socket.close()
 
 
+# Function to run the chunk downloader to retrieve chunks from other peers
 def run_chunk_downloader(content_name, ownerIP):
     client_socket = socket(AF_INET, SOCK_STREAM)
     address = (ownerIP, 12000)
@@ -134,11 +145,12 @@ def run_chunk_downloader(content_name, ownerIP):
     client_socket.close()
 
 
+# Function to download data from the network by requesting specific chunks
 def download_data(content_name):
     req_chunks = []
     ip_chunk_list = []
     for x in range(5):
-        req_chunks.append(content_name + '_' + str(x+1) + 'chk')
+        req_chunks.append(content_name + '_' + str(x + 1) + 'chk')
     for peer in peer_list:
         chunk_list = peer[0].get('chunks')
         for chunks in chunk_list:
@@ -154,20 +166,25 @@ def download_data(content_name):
             run_chunk_downloader(ip_chunk[0], ip_chunk[1])
 
 
+# Function to broadcast a message over UDP
 def broadcast(message):
     peer_udp_send_sock.sendto(message.encode("utf-8"), broadcast_address)
 
 
+# Function to stitch back the downloaded chunks into the original file
 def stitch_back_file(content_name):
-    chunk_names = [content_name+'_1chk', content_name+'_2chk', content_name+'_3chk', content_name+'_4chk', content_name+'_5chk']
-    with open(content_name+'.png', 'wb') as outfile:
+    chunk_names = [content_name + '_1chk', content_name + '_2chk', content_name + '_3chk', content_name + '_4chk', content_name + '_5chk']
+    with open(content_name + '.png', 'wb') as outfile:
         for chunk in chunk_names:
             with open(chunk, 'rb') as infile:
                 outfile.write(infile.read())
             infile.close()
 
 
+# Flag to control the display of submission information
 sub_flow = True
+
+# Main loop for user interaction
 index = 0
 while 1:
     if index == 0:
@@ -181,21 +198,4 @@ while 1:
         print("-/stopsubflow: stops the info messages when a new submissions occurs. \n"
               "-/keepsubflow: continues to print the info messages when a new submission occurs"
               "-/downloadfile: tries to download a specified file from network. \n"
-              "-/printnetchunks: prints out all the available chunks the network has. \n")
-    elif userInput == "/stopsubflow":
-        sub_flow = False
-    elif userInput == "/keepsubflow":
-        sub_flow = True
-    elif userInput == "/printnetchunks":
-        print(peer_list)
-    elif userInput == "/downloadfile":
-        file_name = input('Enter the name of file that you want to download: ')
-        download_data(file_name)
-        try:
-            stitch_back_file(file_name)
-        except:
-            pass
-    else:
-        print("invalid input.")
-
-    index += 1
+              "-/
